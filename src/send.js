@@ -1,6 +1,5 @@
 var ws = require("nodejs-websocket")
-url = "ws://192.168.41.120:8003/";
-// url = "ws://127.0.0.1:8001/";
+
 
 async function testCode(){
     var $ = await getDoc();
@@ -160,6 +159,10 @@ async function testCode(){
 }
 
 
+
+url = "ws://192.168.41.120:8003/";
+url = "ws://192.168.31.211:8003/";
+// url = "ws://127.0.0.1:8001/";
 var codeRwap = testCode.toString()+"; testCode();";
 var con = ws.connect(url, () => {
     console.log('connected');

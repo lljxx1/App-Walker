@@ -175,7 +175,6 @@ class SimpleWalker {
                 });
 
                 var position = 'nav';
-
                 if(startX > 1500){
                     position = 'bottom' 
                 }
@@ -264,7 +263,7 @@ var server = ws.createServer(function (conn) {
 
 
 (async function loop() {
-    return;
+    // return;
     var $ = await getDoc();
     var chrome = $("[text*='今日头条']");
     if (chrome.length) {
