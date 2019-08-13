@@ -148,4 +148,6 @@ export async function getDoc() {
 
 
 
- 
+global.getDoc = getDoc;
+global.sendAction = sendAction;
+global.Driver = Driver;

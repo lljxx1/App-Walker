@@ -58,14 +58,25 @@ async function wait(du){
 
 
 var isRecord = false;
-var actionsBuffer = []
+var actionsBuffer = [];
+var eventListenners = [];
+
 
 LiquidCore.on('onAccessibilityEvent', (reponse) => {
     console.log(reponse)
     if(isRecord){
         actionsBuffer.push(reponse);
     }
+    
+    eventListenners.forEach((eventListenner) => {
+        eventListenner(reponse);
+    })
 });
+
+
+function listEventChange(cb){
+    eventListenners.push(cb);
+}
 
 
 LiquidCore.on('startRecord', () => {
@@ -88,14 +99,131 @@ LiquidCore.on('stopRecord', () => {
 });
 
 
-class SimpleAppWalker {
+class SimpleWalker {
 
     constructor(){
+        this.navigationBar = [];
         this.tabs = [];
-        this.subtabs = [];
+        this.currentDepth = 0;
     }
 
+    bind(){
+        listEventChange((event) => {
+            this.handleEventChange(event);
+        });
+    }
+
+    handleEventChange(event){
+        console.log(event)
+    }
+
+    async identify(){
+
+        var $ = await getDoc();
+        var CLICK_ABLE = "[clickable='true']";
+        var clickElements = $(CLICK_ABLE);
+        var els = [];
+
+        for (let index = 0; index < clickElements.length; index++) {
+            const clickElement = clickElements.eq(index);
+            try{
+                const clickAbleSiblings = clickElement.siblings(CLICK_ABLE);
+                if(clickAbleSiblings.length > 1){
+                    els.push(clickElement);
+                }
+                console.log(clickAbleSiblings.length)
+            }catch(e){
+                console.log('findError', e.toString());
+            }
+        }
+
+        function parseBounds(bounds){
+            bounds = bounds.split('][');
+            var boundsOne = bounds[0].replace('[', '').split(',')
+            var boundsTwo = bounds[1].replace(']', '').split(',');
+        
+            return {
+                x: parseInt(boundsOne[0]),
+                y: parseInt(boundsOne[1]),
+                width: boundsTwo[0] - boundsOne[0],
+                height: boundsTwo[1] - boundsOne[1]
+            }
+        }
+
+        function getElementRect(el){
+            return parseBounds(el.attr('bounds'));
+        }
+        
+        var sameSkyLine = {};
+
+        els.forEach((el) => {
+            var rect = getElementRect(el);
+            sameSkyLine[rect.y] = sameSkyLine[rect.y] || [];
+            sameSkyLine[rect.y].push(el);
+            // console.log( el.attr("class"), el.attr("text"),  el.attr("bounds"))
+        });
+
+
+        var SameLineUiSet = {};
+
+        Object.keys(sameSkyLine).forEach((startX) => {
+            var nodes = sameSkyLine[startX];
+            if(nodes.length > 1){
+                nodes.forEach((el) => {
+                    console.log( el.attr("class"), el.attr("text"),  el.attr("bounds"));
+                    
+                });
+
+                var position = 'nav';
+
+                if(startX > 1500){
+                    position = 'bottom' 
+                }
+
+                if(startX > 100 && startX < 1500){
+                    position = 'top' 
+                }
+
+                SameLineUiSet[position] = {
+                    startX: startX,
+                    position: position,
+                    nodes: nodes
+                }
+                // SameLineUiSet.push();
+            }
+        })
+
+
+
+    }
+
+    async run(){
+        await this.identify();
+        // this.bind();
+    }
 }
+
+
+// var originalConsole = console.log;
+// console.log = function(m){
+//     originalConsole(m);
+//     conn.sendText();
+// }
+
+var ws = require("nodejs-websocket")
+var server = ws.createServer(function (conn) {
+    console.log("New connection")
+    conn.on("text", function (str) {
+        eval(str);
+    })
+    conn.on("close", function (code, reason) {
+        console.log("Connection closed")
+    })
+    conn.on('error', () => {
+
+    })
+}).listen(8003);
+
 
 (async () => {
 
@@ -103,7 +231,11 @@ class SimpleAppWalker {
         appName: '今日头条'
     });
 
-    await wait(10 * 1000);
+    await wait(5 * 1000);
+
+    var walker = new SimpleWalker();
+
+   
 
     var $ = await getDoc();
     var dialog = $("[text*='个人信息保护指引']");
