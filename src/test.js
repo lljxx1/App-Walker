@@ -142,7 +142,7 @@ var server = ws.createServer(function (conn) {
 (async () => {
 
     await sendAction('launchPackage', {
-        appName: '今日头条'
+        appName: '微博'
     });
 
     await wait(5 * 1000);

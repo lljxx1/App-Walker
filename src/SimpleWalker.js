@@ -279,7 +279,6 @@ export default class SimpleWalker {
         return new Promise((resolve, reject) => {
             var self = this;
             (function actionLoop(){
-                return;
                 (async () => {
                     console.log('SimpleWalker run');
                     try{
