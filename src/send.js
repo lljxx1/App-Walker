@@ -86,6 +86,29 @@ async function testCode(){
     })
 
 
+    SameLineUiSet.bottom.nodes.forEach((node) => {
+
+        try{
+            var parent = [];
+            var startNode = node;
+            for (let index = 0; index < 20; index++) {
+                if(startNode.length == 0) break;
+                var className = startNode.attr('class');
+                if(className) {
+                    var currentSelector = [startNode[0].tagName, "[class='"+className+"']"].join('')
+                    parent.push(currentSelector);
+                }else{
+                    parent.push(startNode[0].tagName);
+                };
+                startNode = startNode.parent();
+            }
+            console.log(parent.reverse().join(" > "), node.attr('class'), node.index());
+        }catch(e){
+            console.log(e);
+        }
+    })
+
+    return;
     if(SameLineUiSet.bottom){
         var tabs = SameLineUiSet.bottom.nodes;
         var round = 0;
@@ -161,7 +184,7 @@ async function testCode(){
 
 
 url = "ws://192.168.41.120:8003/";
-url = "ws://192.168.31.211:8003/";
+// url = "ws://192.168.31.211:8003/";
 // url = "ws://127.0.0.1:8001/";
 var codeRwap = testCode.toString()+"; testCode();";
 var con = ws.connect(url, () => {

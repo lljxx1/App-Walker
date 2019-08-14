@@ -101,7 +101,7 @@ export class Driver {
 
 
 
-LiquidCore.on('exit', function (name) {
+LiquidCore.on('exit', function () {
     process.exit(0);
 })
 

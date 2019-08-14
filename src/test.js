@@ -3,6 +3,7 @@ import {
     getDoc,
     sendAction
 } from './driver.js'
+import SimpleWalker from './SimpleWalker';
 
 
 async function wait(du){
@@ -12,6 +13,10 @@ async function wait(du){
 		}, du);
 	})
 }
+
+
+
+global.wait = wait;
 
 (async function loop() {
     return;
@@ -63,14 +68,22 @@ var eventListenners = [];
 
 
 LiquidCore.on('onAccessibilityEvent', (reponse) => {
-    console.log(reponse)
-    if(isRecord){
-        actionsBuffer.push(reponse);
+    try{
+        // console.log(reponse)
+        if(reponse.indexOf('TYPE_WINDOW_STATE_CHANGED') > -1){
+            console.log(reponse);
+        }
+
+        if(isRecord){
+            actionsBuffer.push(reponse);
+        }
+        
+        eventListenners.forEach((eventListenner) => {
+            eventListenner(reponse);
+        })
+    }catch(e){
+
     }
-    
-    eventListenners.forEach((eventListenner) => {
-        eventListenner(reponse);
-    })
 });
 
 
@@ -78,6 +91,8 @@ function listEventChange(cb){
     eventListenners.push(cb);
 }
 
+
+global.listEventChange = listEventChange;
 
 LiquidCore.on('startRecord', () => {
     console.log("startRecord");
@@ -99,108 +114,6 @@ LiquidCore.on('stopRecord', () => {
 });
 
 
-class SimpleWalker {
-
-    constructor(){
-        this.navigationBar = [];
-        this.tabs = [];
-        this.currentDepth = 0;
-    }
-
-    bind(){
-        listEventChange((event) => {
-            this.handleEventChange(event);
-        });
-    }
-
-    handleEventChange(event){
-        console.log(event)
-    }
-
-    async identify(){
-
-        var $ = await getDoc();
-        var CLICK_ABLE = "[clickable='true']";
-        var clickElements = $(CLICK_ABLE);
-        var els = [];
-
-        for (let index = 0; index < clickElements.length; index++) {
-            const clickElement = clickElements.eq(index);
-            try{
-                const clickAbleSiblings = clickElement.siblings(CLICK_ABLE);
-                if(clickAbleSiblings.length > 1){
-                    els.push(clickElement);
-                }
-                console.log(clickAbleSiblings.length)
-            }catch(e){
-                console.log('findError', e.toString());
-            }
-        }
-
-        function parseBounds(bounds){
-            bounds = bounds.split('][');
-            var boundsOne = bounds[0].replace('[', '').split(',')
-            var boundsTwo = bounds[1].replace(']', '').split(',');
-        
-            return {
-                x: parseInt(boundsOne[0]),
-                y: parseInt(boundsOne[1]),
-                width: boundsTwo[0] - boundsOne[0],
-                height: boundsTwo[1] - boundsOne[1]
-            }
-        }
-
-        function getElementRect(el){
-            return parseBounds(el.attr('bounds'));
-        }
-        
-        var sameSkyLine = {};
-
-        els.forEach((el) => {
-            var rect = getElementRect(el);
-            sameSkyLine[rect.y] = sameSkyLine[rect.y] || [];
-            sameSkyLine[rect.y].push(el);
-            // console.log( el.attr("class"), el.attr("text"),  el.attr("bounds"))
-        });
-
-
-        var SameLineUiSet = {};
-
-        Object.keys(sameSkyLine).forEach((startX) => {
-            var nodes = sameSkyLine[startX];
-            if(nodes.length > 1){
-                nodes.forEach((el) => {
-                    console.log( el.attr("class"), el.attr("text"),  el.attr("bounds"));
-                    
-                });
-
-                var position = 'nav';
-                if(startX > 1500){
-                    position = 'bottom' 
-                }
-
-                if(startX > 100 && startX < 1500){
-                    position = 'top' 
-                }
-
-                SameLineUiSet[position] = {
-                    startX: startX,
-                    position: position,
-                    nodes: nodes
-                }
-                // SameLineUiSet.push();
-            }
-        })
-
-
-
-    }
-
-    async run(){
-        await this.identify();
-        // this.bind();
-    }
-}
 
 
 // var originalConsole = console.log;
@@ -221,7 +134,9 @@ var server = ws.createServer(function (conn) {
     conn.on('error', () => {
 
     })
-}).listen(8003);
+});
+
+// server.listen(8003);
 
 
 (async () => {
@@ -233,7 +148,7 @@ var server = ws.createServer(function (conn) {
     await wait(5 * 1000);
 
     var walker = new SimpleWalker();
-
+    await walker.run();
    
 
     var $ = await getDoc();
@@ -263,7 +178,7 @@ var server = ws.createServer(function (conn) {
 
 
 (async function loop() {
-    // return;
+    return;
     var $ = await getDoc();
     var chrome = $("[text*='今日头条']");
     if (chrome.length) {
