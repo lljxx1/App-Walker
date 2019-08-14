@@ -222,10 +222,14 @@ class GeneralPage {
             return;
         }
         
-
         if(currentAction.type == "click"){
             console.log('doAction');
             currentAction.node.click();
+            await wait(1000);
+            var $ = await getDoc();
+            var mainView = this.findMainView($);
+            mainView.node.scroll('backward');
+            await wait(1000);
         }   
 
         if(currentAction.type == "scroll"){
