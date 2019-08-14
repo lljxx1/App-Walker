@@ -190,16 +190,16 @@ class GeneralPage {
                     this.actionTree[uid] = {
                         action: false
                     };
-                    if(mainView){
-                        for (let index = 0; index < 20; index++) {
-                            this.actions.push({
-                                type: 'scroll',
-                                node: mainView.node,
-                                uid: uid,
-                                pending: 2
-                            });
-                        }
-                    }
+                    // if(mainView){
+                    //     for (let index = 0; index < 20; index++) {
+                    //         this.actions.push({
+                    //             type: 'scroll',
+                    //             node: mainView.node,
+                    //             uid: uid,
+                    //             pending: 2
+                    //         });
+                    //     }
+                    // }
                 }else{
                     this.actionTree[uid] = {
                         type: 'click',
@@ -234,7 +234,7 @@ class GeneralPage {
 
         if(currentAction.type == "scroll"){
             console.log('doAction');
-            currentAction.node.scroll();
+            // currentAction.node.scroll();
         }   
 
         if(currentAction.pending){
