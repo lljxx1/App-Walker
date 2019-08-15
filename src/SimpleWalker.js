@@ -43,17 +43,14 @@ function elementToSelector(node){
 class GeneralPage {
 
     constructor(){
-        // this.navigationBar = [];
-        // this.tabs = [];
-        this.actions = [];
-        this.actionIndex = 0;
-        this.clicked = {};
-        this.actionTree = {};
+        this.navigationBarSelector = null;
+        this.secondTabs = null;
+        this.secondTabIndex = 0;
+        this.currentBarIndex = 0;
+        
     }
 
-
     findTabs($){
-
         var CLICK_ABLE = "[clickable='true']";
         var clickElements = $(CLICK_ABLE);
         var els = [];
@@ -155,93 +152,151 @@ class GeneralPage {
         return contentViewByBigArea;
     }
 
-    async identify(){
+    async identify($){
         
-        var $ = await getDoc();
         var tabs = this.findTabs($);
-        var mainView = this.findMainView($);
+        // var mainView = this.findMainView($);
 
-        if(tabs.bottom){
-            tabs.bottom.nodes.forEach((node) => {
-                var selector = elementToSelector(node);
-                var uid = selector + node.index();
-                if(!this.actionTree[uid]){
-                    this.actions.push({
-                        type: 'click',
-                        node: node,
-                        uid: uid,
-                        actions: [
-                            {
-                                type: 'findTabs',
-                                actions: [
-                                    {
-                                        type: "findContentView",
-                                        actions: [
-                                            {
-                                                type: "scroll",
-                                                actions: "click"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-                        ]
-                    });
-                    this.actionTree[uid] = {
-                        action: false
-                    };
-                    // if(mainView){
-                    //     for (let index = 0; index < 20; index++) {
-                    //         this.actions.push({
-                    //             type: 'scroll',
-                    //             node: mainView.node,
-                    //             uid: uid,
-                    //             pending: 2
-                    //         });
-                    //     }
-                    // }
-                }else{
-                    this.actionTree[uid] = {
-                        type: 'click',
-                        node: node,
-                        uid: uid
-                    }
-                }
-            });
+
+
+
+        if(tabs.bottom && !this.navigationBarSelector){
+            this.navigationBarSelector = elementToSelector(tabs.bottom.nodes[0]);
+
+
+            // tabs.bottom.nodes.forEach((node) => {
+            //     var selector = elementToSelector(node);
+            //     var uid = selector + node.index();
+            //     if(!this.actionTree[uid]){
+            //         this.actions.push({
+            //             type: 'click',
+            //             node: node,
+            //             uid: uid,
+            //             actions: [
+            //                 {
+            //                     type: 'findTabs',
+            //                     actions: [
+            //                         {
+            //                             type: "findContentView",
+            //                             actions: [
+            //                                 {
+            //                                     type: "scroll",
+            //                                     actions: "click"
+            //                                 }
+            //                             ]
+            //                         }
+            //                     ]
+            //                 }
+            //             ]
+            //         });
+            //         this.actionTree[uid] = {
+            //             action: false
+            //         };
+            //         // if(mainView){
+            //         //     for (let index = 0; index < 20; index++) {
+            //         //         this.actions.push({
+            //         //             type: 'scroll',
+            //         //             node: mainView.node,
+            //         //             uid: uid,
+            //         //             pending: 2
+            //         //         });
+            //         //     }
+            //         // }
+            //     }else{
+            //         this.actionTree[uid] = {
+            //             type: 'click',
+            //             node: node,
+            //             uid: uid
+            //         }
+            //     }
+            // });
         }
 
 
        
     }
 
-    async doAction(){
-        if(!this.actions[this.actionIndex]) this.actionIndex = 0;
-        var currentAction = this.actions[this.actionIndex];
 
-        if(!currentAction){
+    async playTab(){
+
+
+        var $ = await getDoc();
+        var Scrollable = "[scrollable='true']";
+        var scrollableElements = $(Scrollable);
+        var listView = scrollableElements.find("node[class='android.support.v7.widget.RecyclerView']");
+       
+
+        // var mainView = this.findMainView($);
+        if(!listView){
+            console.log("listView not found");
             return;
         }
-        
-        if(currentAction.type == "click"){
-            console.log('doAction');
-            currentAction.node.click();
-            await wait(1000);
+
+        var selector = elementToSelector(listView);
+
+        listView.scroll('backward');
+        await wait(2000);
+
+        for (let index = 0; index < 15; index++) {
             var $ = await getDoc();
-            var mainView = this.findMainView($);
-            mainView.node.scroll('backward');
+            var listView = $(selector);
+            console.log('listView', listView.length);
+            listView.scroll();
             await wait(1000);
-        }   
-
-        if(currentAction.type == "scroll"){
-            console.log('doAction');
-            // currentAction.node.scroll();
-        }   
-
-        if(currentAction.pending){
-            await wait(currentAction.pending);
         }
 
-        this.actionIndex++;
+        // var tabs = this.findTabs($);
+        // if(tabs.top){
+            
+        // }
+
+    }
+
+    async doAction($){
+
+        var allTabs = $(this.navigationBarSelector);
+        if(this.currentBarIndex >= allTabs.length){
+            this.currentBarIndex = 0;
+        }
+
+        var currentNavTab = allTabs.eq(this.currentBarIndex);
+        if(currentNavTab){
+            currentNavTab.click();
+            await wait(1000);
+            await this.playTab();
+        }
+
+
+        this.currentBarIndex++;
+
+
+        // if(!this.actions[this.actionIndex]) this.actionIndex = 0;
+        // var currentAction = this.actions[this.actionIndex];
+
+        // if(!currentAction){
+        //     return;
+        // }
+        
+        // if(currentAction.type == "click"){
+        //     console.log('doAction');
+        //     currentAction.node.click();
+        //     await wait(1000);
+        //     var $ = await getDoc();
+        //     var mainView = this.findMainView($);
+        //     mainView.node.scroll('backward');
+        //     await wait(1000);
+        // }   
+
+        // if(currentAction.type == "scroll"){
+        //     console.log('doAction');
+        //     // currentAction.node.scroll();
+        // }   
+
+        // if(currentAction.pending){
+        //     await wait(currentAction.pending);
+        // }
+
+        // this.actionIndex++;
     }
     
 
@@ -287,8 +342,9 @@ export default class SimpleWalker {
                     console.log('SimpleWalker run');
                     try{
                         var currentPage = self.getCurrentPage();
-                        await currentPage.identify();
-                        await currentPage.doAction();
+                        var $ = await getDoc();
+                        await currentPage.identify($);
+                        await currentPage.doAction($);
                     }catch(e){
                         console.log(e);
                     }

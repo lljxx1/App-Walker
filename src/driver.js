@@ -128,19 +128,19 @@ export async function getDoc() {
     console.log(viewTree);
     var doc = cheerio.load(viewTree, { ignoreWhitespace: true, xmlMode: true });
 
-    doc.prototype.click = function () {
-        for (let index = 0; index < this.length; index++) {
-            const element = this.eq(index);
-            Driver.triggerEventToElement(element.attr(ATTR_ID), 'click');
-        }
+    doc.prototype.click = async function () {
+        const element = this.eq(0);
+        // for (let index = 0; index < this.length; index++) {
+        //     const element = this.eq(index);
+        //     Driver.triggerEventToElement(element.attr(ATTR_ID), 'click');
+        // }
+        return await Driver.triggerEventToElement(element.attr(ATTR_ID), 'click');
     }
 
-    doc.prototype.scroll = function (type) {
+    doc.prototype.scroll = async function (type) {
         type = type || 'forward';
-        for (let index = 0; index < this.length; index++) {
-            const element = this.eq(index);
-            Driver.triggerEventToElement(element.attr(ATTR_ID), 'scroll-' + type);
-        }
+        const element = this.eq(0);
+        return await Driver.triggerEventToElement(element.attr(ATTR_ID), 'scroll-' + type);
     }
 
     return doc;

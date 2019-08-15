@@ -135,8 +135,7 @@ var server = ws.createServer(function (conn) {
 
     })
 });
-
-// server.listen(8003);
+server.listen(8003);
 
 
 (async () => {
@@ -148,7 +147,7 @@ var server = ws.createServer(function (conn) {
     await wait(5 * 1000);
 
     var walker = new SimpleWalker();
-    await walker.run();
+    // await walker.run();
    
 
     var $ = await getDoc();
