@@ -227,9 +227,7 @@ async function testCode(){
     }
 
 
-    function findListChild(node){
-
-
+    function findListChild(node, height = 500, width = 1000, maxHeight = 1000){
         var CLICK_ABLE = "[clickable='true']";
         var clickElements = node.find(CLICK_ABLE);
         var els = [];
@@ -253,9 +251,8 @@ async function testCode(){
             var rect = getElementRect(el);
             sameSkyLine[rect.x] = sameSkyLine[rect.x] || [];
             sameSkyLine[rect.x].push(el);
-            // console.log( el.attr("class"), el.attr("text"),  el.attr("bounds"))
+          
         });
-
 
         // console.log(sameSkyLine[0]);
         if(!sameSkyLine['0']){
@@ -267,8 +264,8 @@ async function testCode(){
         // 面积过滤
         sameSkyLine['0'].forEach((node) => {
             var rect = getElementRect(node);
-            if(rect.height > 500 && rect.width > 1000){
-                areaEnought.push(node);
+            if(rect.height > height && rect.width > width){
+                if(rect.height < maxHeight) areaEnought.push(node);
             }
         })
 
@@ -289,9 +286,6 @@ async function testCode(){
             if(element.attr('class') == "android.support.v4.view.ViewPager"){
                 continue;
             }
-
-            console.log(element.attr('class') );
-
             var rect = getElementRect(element);
             var comp = {
                 rect: rect,
@@ -320,7 +314,6 @@ async function testCode(){
 
     
     var $ = await getDoc();
-
     console.log('findMainView')
     var listView = findMainView($);
     if(!listView){
@@ -330,8 +323,7 @@ async function testCode(){
 
     var parentViewPagers = listView.node.parents("node[class='android.support.v4.view.ViewPager'][scrollable='true']");
     
-    // console.log('parentViewPagers', parentViewPagers.eq(0).attr());
-    // return;
+    console.log('parentViewPagers', parentViewPagers.eq(0).attr());
 
     var wrapTab = parentViewPagers.eq(0);
     console.log('parentViewPagers', wrapTab.attr());
@@ -342,6 +334,20 @@ async function testCode(){
     // listView.node.scroll();
     // await wait(1000);
     // wrapTab.scroll();
+
+
+    // test play Tab
+    // var $ = await getDoc();
+    // var wrapTab = $(tabSelector);
+    // for (let index = 0; index < 3; index++) {
+    //     var clickResults = await wrapTab.scroll();
+    //     console.log('clickResults', clickResults)
+    //     await wait(10 * 1000);
+    // }
+
+    // console.log('done');
+    // return;
+
     console.log('tabSelector', tabSelector);
     var isEnd = false;
     var postion = 'forward';
@@ -349,34 +355,134 @@ async function testCode(){
 
     console.log('scroll first content');
 
-    
-    
-
     var contentCount = 3;
     var contentViewNode = null;
 
+    // for (let index = 0; index < contentCount; index++) {
+    //     var $ = await getDoc();
+    //     contentViewNode = $(listViewSelector);
+    //     if(index == 0){
+    //         await contentViewNode.scroll('backward');
+    //         await wait(3 * 1000);
+    //     }
+    //     console.log('contentViewNode');
+    //     await contentViewNode.scroll();
+    //     await wait(100);
 
-    for (let index = 0; index < contentCount; index++) {
-        var $ = await getDoc();
-        contentViewNode = $(listViewSelector);
-        if(index == 0){
-            await contentViewNode.scroll('backward');
-            await wait(3 * 1000);
-        }
-        console.log('contentViewNode');
-        await contentViewNode.scroll();
-        await wait(100);
-
-        var childNodes = findListChild(contentViewNode);
-
-        if(childNodes.length){
-            await childNodes[0].click();
-            break;
-        }
-
-    }
+    //     // var childNodes = findListChild(contentViewNode);
+    //     if(childNodes.length){
+    //         // await childNodes[0].click();
+    //         break;
+    //     }
+    // }
+    await playArticleContent(listView.node);
 
     return;
+
+
+    function palyDetailNode(childNode){
+        return new Promise((resolve, reject) => {
+            // var childNodeSelector = elementToSelector(childNode);
+            (async () => {
+
+                console.log('palyDetailNode');
+                // var $ = await getDoc();
+                var childViewNode = childNode;
+    
+                // 记录窗口变化次数、回退用
+                var windowChangeCount = 0;
+                var stack = [];
+                LiquidCore.on('onAccessibilityEvent', (reponse) => {
+                    try{
+                        if(reponse.indexOf('TYPE_WINDOW_STATE_CHANGED') > -1){
+                            windowChangeCount++;
+                            stack.push(reponse);
+                        }
+                    }catch(e){
+                    }
+                });
+                
+                var clickResult = await childViewNode.click();
+                await wait(2 * 1000);
+                if(windowChangeCount && clickResult){
+                    for (let index = 0; index < 1; index++) {
+                        await sendAction('doGlobalAction', {
+                            action: 'back'
+                        });
+                        await wait(1000);
+                    }
+                }
+                console.log('windowChangeCount', windowChangeCount);
+                stack.forEach((a, i) => {
+                    console.log('window change', i, a);
+                })
+                console.log('palyDetailNode done');
+                resolve('done');
+            })();
+        });
+    }
+
+    async function playArticleContent(contentNode){
+        var contentNodeSelector = elementToSelector(contentNode);
+        var contentViewNode = null;
+        var listViewChildSelector = null;
+
+        var $ = await getDoc();
+        contentViewNode = $(contentNodeSelector);
+
+        var useClickTest = true;
+
+        console.log('useClickTest', useClickTest);
+
+        if(useClickTest){
+            var testStartNode = contentViewNode;
+            var fistEl = null;
+            for (let index = 0; index < 5; index++) {
+                var allIsClickAble = true;
+                var contentChildrens = testStartNode.children();
+                var clickAbleLength = contentChildrens.find("[clickable='true']");
+                var clickablePercent = clickAbleLength.length / contentChildrens.length * 100;
+                // 如果80%可点 认为是列表节点？
+                if(clickablePercent > 80){
+                    fistEl = contentChildrens.eq(0);
+                    break;
+                }
+            }
+
+            if(fistEl){
+                listViewChildSelector = elementToSelector(fistEl);
+            }
+        }else{
+            // 定位列表页的列表项的选择器
+            var childNodes = findListChild(contentViewNode, 70, 1000, 400);
+            if(childNodes.length){
+                listViewChildSelector = elementToSelector(childNodes[0]);
+            }
+        }
+
+
+        // console.log(contentViewNode.children().eq(0).attr());
+        // return;
+
+        for (let index = 0; index < 10; index++) {
+            // 尝试点到详细页
+            if(listViewChildSelector){
+                var $ = await getDoc();
+                var childNode = $(listViewChildSelector).eq(0);
+                try{
+                    await palyDetailNode(childNode);
+                }catch(e){
+                    console.log(e);
+                } 
+            }
+
+            // 滚动
+            await contentViewNode.scroll();
+            await wait(300);
+        }
+
+        console.log('palyContent done');
+    }
 
     async function palyContent(contentNode){
         var contentNodeSelector = elementToSelector(contentNode);
@@ -397,8 +503,7 @@ async function testCode(){
     }
 
     var round = 0;
-    var roundLimit = 2;
-
+    var roundLimit = 10;
 
     for (let index = 0; index < 40; index++) {
         if(round > roundLimit){
@@ -407,7 +512,8 @@ async function testCode(){
         var $ = await getDoc();
         var content = findMainView($);
         if(content){
-            await palyContent(content.node);
+            // await palyContent(content.node);
+            await playArticleContent(content.node);
         }
 
         wrapTab = $(tabSelector);

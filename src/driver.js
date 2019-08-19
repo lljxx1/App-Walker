@@ -22,11 +22,9 @@ function getGuid() {
 var watchers = {};
 
 LiquidCore.on('actionResponse', (reponse) => {
-    console.log(typeof reponse);
     var originalEvent = reponse.event;
     var eventId = originalEvent.eventId;
     var actionName = originalEvent.actionName;
-    console.log(Object.keys(watchers));
     if (watchers[actionName]) {
         if (watchers[actionName]) {
             try {
@@ -48,19 +46,22 @@ export function sendAction(actionName, data, timeout) {
 
         timeout = timeout || 3000;
 
+        var isCalled = false;
+
         watchers[actionName] = {};
         watchers[actionName][eventId] = (re) => {
-            console.log('action callback', re);
+            isCalled = true;
             resolve(re);
         }
 
-        console.log('sendAction', Object.keys(watchers));
-
         setTimeout(() => {
+            if(isCalled) return;
             try {
                 delete watchers[actionName][eventId];
             } catch (e) {
             }
+
+            console.log('timeout', actionName, data);
             reject('timeout');
         }, timeout);
 
@@ -122,12 +123,8 @@ LiquidCore.emit('ready');
 var ATTR_ID = 'element-id';
 
 export async function getDoc() {
-
-    console.log('viewTree');
     var viewTree = await Driver.getSource();
-    console.log(viewTree);
     var doc = cheerio.load(viewTree, { ignoreWhitespace: true, xmlMode: true });
-
     doc.prototype.click = async function () {
         const element = this.eq(0);
         // for (let index = 0; index < this.length; index++) {

@@ -66,23 +66,30 @@ var isRecord = false;
 var actionsBuffer = [];
 var eventListenners = [];
 
+const EventEmitter = require('events');
+
+global.AccessibilityEventEmitter = new EventEmitter();
+
 
 LiquidCore.on('onAccessibilityEvent', (reponse) => {
     try{
         // console.log(reponse)
         if(reponse.indexOf('TYPE_WINDOW_STATE_CHANGED') > -1){
-            console.log(reponse);
+            
         }
 
         if(isRecord){
             actionsBuffer.push(reponse);
         }
         
-        eventListenners.forEach((eventListenner) => {
-            eventListenner(reponse);
-        })
+        // eventListenners.forEach((eventListenner) => {
+        //     eventListenner(reponse);
+        // })
+
+        AccessibilityEventEmitter.emit('event', JSON.parse(reponse));
     }catch(e){
 
+        console.log('onAccessibilityEvent', e);
     }
 });
 
@@ -141,15 +148,18 @@ server.listen(8003);
 (async () => {
 
     await sendAction('launchPackage', {
-        appName: '微博'
+        appName: '今日头条'
     });
 
     await wait(5 * 1000);
 
-    var walker = new SimpleWalker();
-    // await walker.run();
-   
-
+    try{
+        var walker = new SimpleWalker();
+        // await walker.run();
+    }catch(e){
+        console.log(e);
+    }
+    
     var $ = await getDoc();
     var dialog = $("[text*='个人信息保护指引']");
     var knowButton = $("[text*='我知道了']");
