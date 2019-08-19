@@ -149,8 +149,7 @@ var server = ws.createServer(function (conn) {
 //   console.log('server start with port', port);
 // });
 
-
-var appNames = ['今日头条', '微博'];
+var appNames = ['今日头条', '腾讯新闻'];
 var appIndex = 0;
 var lastApp = null;
 
