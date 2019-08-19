@@ -122,15 +122,12 @@ LiquidCore.emit('ready');
 
 var ATTR_ID = 'element-id';
 
-export async function getDoc() {
-    var viewTree = await Driver.getSource();
-    var doc = cheerio.load(viewTree, { ignoreWhitespace: true, xmlMode: true });
+
+export function createDoc(xmlString){
+    
+    var doc = cheerio.load(xmlString, { ignoreWhitespace: true, xmlMode: true });
     doc.prototype.click = async function () {
         const element = this.eq(0);
-        // for (let index = 0; index < this.length; index++) {
-        //     const element = this.eq(index);
-        //     Driver.triggerEventToElement(element.attr(ATTR_ID), 'click');
-        // }
         return await Driver.triggerEventToElement(element.attr(ATTR_ID), 'click');
     }
 
@@ -140,10 +137,39 @@ export async function getDoc() {
         return await Driver.triggerEventToElement(element.attr(ATTR_ID), 'scroll-' + type);
     }
 
+    doc.prototype.text = function() {
+        return getText(this);
+    };
+
     return doc;
 }
 
+export async function getDoc() {
+    var viewTree = await Driver.getSource();
+    return createDoc(viewTree);
+}
 
+
+export function getText(elems){
+    var ret = '',
+      len = elems.length,
+      elem;
+    for (var i = 0; i < len; i++) {
+        elem = elems[i];
+        if(elem.attribs && elem.attribs.text){
+            ret += elem.attribs.text;
+        }
+        else if (
+            elem.children &&
+            elem.type !== 'comment' &&
+            elem.tagName !== 'script' &&
+            elem.tagName !== 'style'
+        ) {
+            ret += getText(elem.children);
+        }
+    }
+    return ret;
+}
 
 global.getDoc = getDoc;
 global.sendAction = sendAction;

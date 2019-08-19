@@ -142,44 +142,85 @@ var server = ws.createServer(function (conn) {
 
     })
 });
-server.listen(8003);
+
+// server.listen(0);
+// server.on('listening', function() {
+//   var port = server.address().port;
+//   console.log('server start with port', port);
+// });
 
 
-(async () => {
+var appNames = ['今日头条', '微博'];
+var appIndex = 0;
+var lastApp = null;
+
+async function playApp(appName){
 
     await sendAction('launchPackage', {
-        appName: '今日头条'
+        appName: appName
     });
 
     await wait(5 * 1000);
 
+    if(lastApp){
+        await sendAction('stopApp', {
+            appName: lastApp
+        });
+    }
+
     try{
         var walker = new SimpleWalker();
-        // await walker.run();
+        await walker.run();
     }catch(e){
         console.log(e);
     }
+
     
-    var $ = await getDoc();
-    var dialog = $("[text*='个人信息保护指引']");
-    var knowButton = $("[text*='我知道了']");
+    lastApp = appName;
+}
 
-    console.log(dialog.length, knowButton.length);
-    if(dialog.length && knowButton.length){
-        console.log("try to click");
-        knowButton.click();
-    }
+(function actionLoop(){
+    (async () => {
+        if(!appNames[appIndex]){
+            appIndex = 0;   
+        }
+        var appName = appNames[appIndex];
+        try{
+            await playApp(appName);
+        }catch(e){
+            console.log('playApp', e);
+        }
+        appIndex++;
+        await wait(5 * 1000);
+        setTimeout(actionLoop, 200);
+    })();
+})();
 
-    await wait(10 * 1000);
+(async () => {
 
-    var $ = await getDoc();
-    var clickElements = $("[clickable='true']");
 
-    for (let index = 0; index < clickElements.length; index++) {
-        // const element = clickElements.eq(index);
-        // element.click();
-        // await wait(5 * 1000);
-    }
+    
+    
+    // var $ = await getDoc();
+    // var dialog = $("[text*='个人信息保护指引']");
+    // var knowButton = $("[text*='我知道了']");
+
+    // console.log(dialog.length, knowButton.length);
+    // if(dialog.length && knowButton.length){
+    //     console.log("try to click");
+    //     knowButton.click();
+    // }
+
+    // await wait(10 * 1000);
+
+    // var $ = await getDoc();
+    // var clickElements = $("[clickable='true']");
+
+    // for (let index = 0; index < clickElements.length; index++) {
+    //     // const element = clickElements.eq(index);
+    //     // element.click();
+    //     // await wait(5 * 1000);
+    // }
    
 })();
 
