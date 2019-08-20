@@ -44,6 +44,10 @@ export default class GeneralPage {
 
         var SameLineUiSet = {};
 
+
+        // var bottomX = 1500;
+        var bottomX = 1185;
+
         Object.keys(sameSkyLine).forEach((startX) => {
             var nodes = sameSkyLine[startX];
             if(nodes.length > 1){
@@ -53,11 +57,11 @@ export default class GeneralPage {
                 });
 
                 var position = 'nav';
-                if(startX > 1500){
+                if(startX > bottomX){
                     position = 'bottom' 
                 }
 
-                if(startX > 100 && startX < 1500){
+                if(startX > 100 && startX < bottomX){
                     position = 'top' 
                 }
 
@@ -66,7 +70,6 @@ export default class GeneralPage {
                     position: position,
                     nodes: nodes
                 }
-                // SameLineUiSet.push();
             }
         })
 

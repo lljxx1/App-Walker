@@ -174,3 +174,4 @@ export function getText(elems){
 global.getDoc = getDoc;
 global.sendAction = sendAction;
 global.Driver = Driver;
+global.getSource = Driver.getSource;
