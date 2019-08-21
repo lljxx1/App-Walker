@@ -79,7 +79,8 @@ export default class PlayTab {
             await wait(1000);
 
             // 滚动
-            await contentViewNode.scroll();
+            var scrollResults =  await contentViewNode.scroll();
+            console.log('scrollResults', scrollResults);
             await wait(500);
         }
         console.log('palyContent done');

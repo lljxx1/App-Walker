@@ -60,11 +60,11 @@ export function sendAction(actionName, data, timeout) {
                 delete watchers[actionName][eventId];
             } catch (e) {
             }
-
-            console.log('timeout', actionName, data);
+            console.log('timeout', actionName, JSON.stringify(data));
             reject('timeout');
         }, timeout);
 
+        console.log('send', actionName, JSON.stringify(data));
         LiquidCore.emit(actionName, data);
     });
 }
@@ -128,13 +128,23 @@ export function createDoc(xmlString){
     var doc = cheerio.load(xmlString, { ignoreWhitespace: true, xmlMode: true });
     doc.prototype.click = async function () {
         const element = this.eq(0);
-        return await Driver.triggerEventToElement(element.attr(ATTR_ID), 'click');
+        var status = false;
+        try{
+            status = await Driver.triggerEventToElement(element.attr(ATTR_ID), 'click');
+        }catch(e){
+        }
+        return status;
     }
 
     doc.prototype.scroll = async function (type) {
         type = type || 'forward';
         const element = this.eq(0);
-        return await Driver.triggerEventToElement(element.attr(ATTR_ID), 'scroll-' + type);
+        var status = false;
+        try{
+            status = await Driver.triggerEventToElement(element.attr(ATTR_ID), 'scroll-' + type);
+        }catch(e){
+        }
+        return status;
     }
 
     doc.prototype.text = function() {

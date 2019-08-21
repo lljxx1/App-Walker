@@ -4,16 +4,17 @@ import {
     sendAction
 } from './driver.js'
 import SimpleWalker from './SimpleWalker';
+import {
+    startListent
+} from './DebugClient';
 
-
-async function wait(du){
+function wait(du){
 	return new Promise((resolve, reject) => {
 		setTimeout(() => {
 			resolve();
 		}, du);
 	})
 }
-
 
 
 global.wait = wait;
@@ -149,7 +150,7 @@ var server = ws.createServer(function (conn) {
 //   console.log('server start with port', port);
 // });
 
-var appNames = ['今日头条', '腾讯新闻'];
+var appNames = ['知乎', '豆瓣'];
 var appIndex = 0;
 var lastApp = null;
 
@@ -196,10 +197,7 @@ async function playApp(appName){
 })();
 
 (async () => {
-
-
-    
-    
+    startListent();
     // var $ = await getDoc();
     // var dialog = $("[text*='个人信息保护指引']");
     // var knowButton = $("[text*='我知道了']");

@@ -45,7 +45,7 @@ export default class PlayDetail {
                             });
                             resolve('done');
                         })();
-                    }, 2 * 1000);
+                    }, 10 * 1000);
                 }
                 
 

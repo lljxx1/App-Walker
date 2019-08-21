@@ -9,14 +9,13 @@ import {
 } from './DebugClient';
 
 
-async function wait(du){
+function wait(du){
 	return new Promise((resolve, reject) => {
 		setTimeout(() => {
 			resolve();
 		}, du);
 	})
 }
-
 
 
 global.wait = wait;
