@@ -16,7 +16,6 @@ export function getElementRect(el){
     return parseBounds(el.attr('bounds'));
 }
 
-
 export function findMainView($){
     var Scrollable = "[scrollable='true']";
     var scrollableElements = $(Scrollable);

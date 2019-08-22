@@ -56,7 +56,6 @@ async function testCode1(){
         // console.log( el.attr("class"), el.attr("text"),  el.attr("bounds"))
     });
 
-
     var SameLineUiSet = {};
 
     Object.keys(sameSkyLine).forEach((startX) => {

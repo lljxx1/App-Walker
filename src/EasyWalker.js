@@ -1,3 +1,15 @@
+
+
+
+function wait(du){
+	return new Promise((resolve, reject) => {
+		setTimeout(() => {
+			resolve();
+		}, du);
+	})
+}
+
+
 function PlayDetail(childNode) {
     return new Promise((resolve, reject) => {
         var isDone = false;
@@ -35,7 +47,7 @@ function PlayDetail(childNode) {
                         });
                         resolve('done');
                     })();
-                }, 8 * 1000);
+                }, 10 * 1000);
             }
             
 
@@ -60,44 +72,69 @@ function PlayDetail(childNode) {
 };
 
 
-(async () => { 
-    var $ = await getDoc();
-    var mainView = $.mainContentView();
 
-    var childSelector = mainView.children("[clickable='true']").eq(0).toSelector();
-    var mainViewPager = mainView.parents("node[class='android.support.v4.view.ViewPager'][scrollable='true']").eq(0);
-    var mainViewPagerSelector = mainViewPager.toSelector();
-    
+(function actionLoop(){
 
-    for (let index = 0; index < 10; index++) {
-
-        
-
-    }
+    var maxRound = 1000;
+    var rounCount = 0;
 
 
-    for (let index = 0; index < 10; index++) {
-        var $ = await getDoc();
-        var childs = $(childSelector);
+    (async () => {
 
-        if(childs.length) {
-            await PlayDetail(childs.eq(0));
+        if(rounCount > maxRound){
+            return;
         }
 
-        await wait(3 * 1000);
+        var tabIndex = 0;
+        var tabFound = false;
 
         var $ = await getDoc();
-        mainView = $.mainContentView();
-        await mainView.scroll();
-        await wait(3 * 1000);
-    }
+        var bootomTab = $.tabs('bottom');
 
-    console.log('all done')
-})();
+        if(!tabFound){
+            if(bootomTab){
+                tabFound = true;
+            }
+        }
+
+        if(tabFound){
+            await bootomTab.eq(tabIndex).click();
+
+            var $ = await getDoc();
+            var mainView = $.mainContentView();
+            if(mainView){
 
 
-(async () => {
-    var $ = await getDoc();
-    var mainView = $.mainContentView();
-    console.log(mainView.children().eq(0).attr());
+                var childSelector = mainView.children("[clickable='true']").eq(0).toSelector();
+
+                for (let index = 0; index < 10; index++) {
+                    var childs = $(childSelector);
+                    if(childs.length){
+                        await PlayDetail(childs.eq(0));
+                    }
+                    
+
+                    
+
+                }
+
+
+
+
+                console.log(childSelector);
+
+
+                await $.mainContentView().scroll();
+
+
+
+
+            }
+            
+        }
+        
+
+        rounCount++;
+        setTimeout(actionLoop, 200);
+    })();
 })();
